@@ -21,10 +21,23 @@ public class ProxyTester {
     public static void main(String[] args) {
         String s_r = "ReflectionTest";
         ProxyTester pt = new ProxyTester();
-        pt.PrintMetods(s_r);
+
+        pt.PrintModifiersPackageParent(s_r);
+
+        pt.PrintTypeParameters(new Runtime<Double>());
+
+        //pt.PrintMetods(s_r);
+        pt.PrintAllMethods(s_r);
         Integer i = 5;
-        pt.PrintMetods(i);
-        pt.PrintMetods(pt);
+        //pt.PrintMetods(i);
+        pt.PrintAllMethods(i);
+        //pt.PrintMetods(pt);
+        pt.PrintAllMethods(pt);
+
+        pt.PrintAllGetters(s_r);
+        pt.PrintAllGetters(i);
+        pt.PrintAllGetters(pt);
+
         pt.PrintConstants(pt);
 
 
@@ -78,7 +91,7 @@ public class ProxyTester {
 
     }
 
-    private void PrintMetods(Object o) {
+    private void PrintMethods(Object o) {
         Class<?> cl = o.getClass();
         String className = cl.getName();
         System.out.println("----------------------");
@@ -105,6 +118,84 @@ public class ProxyTester {
         }
         System.out.println("----------------------");
     }
+
+    private void PrintModifiersPackageParent(Object o){
+        System.out.println("---------------------");
+        Class<?> cl = o.getClass();
+        System.out.println("Класс " + cl.getName());
+        System.out.println("Модификаторы типа " + Modifier.toString(cl.getModifiers()));
+        System.out.println("Имя пакета " + cl.getPackage());
+        System.out.println("Иерархия и интерфейсы:");
+
+        while (cl != null){
+            System.out.println(cl.getName());
+            for (Class<?> iface : cl.getInterfaces())
+                System.out.println(" - " + iface.getName());
+            cl = cl.getSuperclass();
+        }
+        System.out.println("---------------------");
+        System.out.println();
+    }
+
+    private void PrintTypeParameters(Object o){
+
+        Class<?> cl = o.getClass();
+        System.out.println("---------------------");
+        System.out.println("Все типы-параметры для " + cl.getName());
+        for (TypeVariable<?> tv : cl.getTypeParameters()){
+            System.out.println(" - " + tv + "  границы:");
+            for (Type type : tv.getBounds())
+                System.out.println("   - " + type);
+
+        }
+
+
+/*
+        for (Method m : cl.getDeclaredMethods() ){
+            System.out.println(" Метод " + m.getName());
+            for(TypeVariable<Method> typeVariable : m.getTypeParameters())
+                System.out.println("   - " + typeVariable);
+        }
+        */
+    }
+
+
+    /**
+     * Вывод всех (в т.ч. private) методов класса и его суперклассов.
+     * @param o - объект, чьи методы выводим
+     */
+    private void PrintAllMethods(Object o){
+        Class<?> cl = o.getClass();
+        System.out.println("---------------------");
+        System.out.println("Все методы класса и суперклассов для " + cl.getName());
+        int count = 0;
+        while (cl != null){
+            for (Method m : cl.getDeclaredMethods()) {
+                System.out.println((count++) + " " + Modifier.toString(m.getModifiers()) + " " + m.getName());
+            }
+            cl = cl.getSuperclass();
+        }
+        System.out.println("---------------------");
+        System.out.println();
+
+    }
+
+    private void PrintAllGetters(Object o){
+
+        Class<?> cl = o.getClass();
+        System.out.println("---------------------");
+        System.out.println("Все геттеры класса " + cl.getName());
+        int count = 0;
+        for (Method m : cl.getDeclaredMethods()) {
+            String mName = m.getName();
+            if (BeanUtils.isGetter(m)) {
+                System.out.println((count++) + " " + Modifier.toString(m.getModifiers()) + " " + m.getName());
+            }
+        }
+        System.out.println("---------------------");
+        System.out.println();
+    }
+
 
     private void PrintConstants(Object o) {
         Class<?> cl = o.getClass();
